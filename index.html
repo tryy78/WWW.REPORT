@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Prototype - Sistem Pelaporan Akun Media Sosial</title>
+  <style>
+    /* Simple modern styling - feel free to replace with Tailwind or framework */
+    :root{--accent:#2563eb;--bg:#f7fafc;--card:#ffffff;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);margin:0;padding:24px;color:#111}
+    .container{max-width:900px;margin:0 auto}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+    form{display:grid;grid-template-columns:1fr 300px;gap:16px}
+    .full{grid-column:1 / -1}
+    label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6edf3;font-size:14px}
+    textarea{min-height:120px}
+    .actions{display:flex;gap:8px;align-items:center}
+    button{background:var(--accent);color:white;padding:10px 14px;border:none;border-radius:10px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid #dbeafe}
+    .preview{padding:10px;border-radius:8px;border:1px dashed #e6edf3;text-align:center;color:var(--muted)}
+    .muted{color:var(--muted);font-size:13px}
+    .reports-list{margin-top:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #eef2f7;text-align:left;font-size:13px}
+    .status{padding:4px 8px;border-radius:999px;font-size:12px}
+    .status.new{background:#eef2ff;color:#1e3a8a}
+    .status.reviewed{background:#eefaf1;color:#0f5132}
+    .small{font-size:12px}
+    @media(max-width:880px){form{grid-template-columns:1fr} .container{padding:12px}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Prototype Sistem Pelaporan Akun Media Sosial</h1>
+      <div class="muted">Versi prototipe — hanya frontend (localStorage)</div>
+    </header>
+
+    <section class="card">
+      <form id="reportForm">
+        <div>
+          <label for="platform">Platform</label>
+          <select id="platform" required>
+            <option value="">Pilih platform...</option>
+            <option>Instagram</option>
+            <option>Facebook</option>
+            <option>Twitter / X</option>
+            <option>TikTok</option>
+            <option>YouTube</option>
+            <option>Lainnya</option>
+          </select>
+
+          <label for="handle" style="margin-top:12px">Nama Pengguna / Handle</label>
+          <input id="handle" placeholder="@contoh or username" required />
+
+          <label for="reason" style="margin-top:12px">Alasan Pelaporan</label>
+          <select id="reason" required>
+            <option value="">Pilih alasan...</option>
+            <option>Konten ilegal</option>
+            <option>Penipuan / Scam</option>
+            <option>Pelecehan / Bullying</option>
+            <option>Pelanggaran hak cipta</option>
+            <option>Impersonasi</option>
+            <option>Lainnya</option>
+          </select>
+
+          <label for="details" style="margin-top:12px">Detail / Bukti (deskripsikan kronologi)</label>
+          <textarea id="details" placeholder="Jelaskan apa yang terjadi, kapan, link posting, dsb." required></textarea>
+
+          <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+            <label style="margin:0">
+              <input id="anonymous" type="checkbox" /> Laporkan anonim
+            </label>
+            <div class="muted small">(Jika anonim, nama & email tidak akan disimpan)</div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <div style="flex:1">
+              <label for="reporterName">Nama Pelapor</label>
+              <input id="reporterName" placeholder="(opsional)" />
+            </div>
+            <div style="width:260px">
+              <label for="reporterEmail">Email Pelapor</label>
+              <input id="reporterEmail" placeholder="(opsional)" />
+            </div>
+          </div>
+
+        </div>
+
+        <div>
+          <div class="preview" id="imagePreview">Tidak ada berkas bukti terunggah</div>
+          <label for="evidence" style="margin-top:12px;display:block">Unggah bukti (screenshot atau video pendek)</label>
+          <input id="evidence" type="file" accept="image/*,video/*" />
+
+          <div class="muted small" style="margin-top:10px">Format demo: berkas disimpan di browser (localStorage) — untuk produksi perlu unggah ke server atau storage seperti S3.</div>
+
+          <div class="full" style="margin-top:18px;display:flex;gap:8px;justify-content:flex-end">
+            <button type="submit">Kirim Laporan</button>
+            <button type="button" id="clearBtn" class="ghost">Bersihkan Form</button>
+          </div>
+        </div>
+
+        <div class="full" style="margin-top:12px">
+          <div class="muted small">Catatan: Ini hanya prototype frontend. Untuk fungsionalitas nyata, butuh backend (API) yang menyimpan laporan ke database, autentikasi admin, rate-limit, validasi berkas, dan kebijakan privasi.</div>
+        </div>
+      </form>
+
+      <div style="margin-top:18px">
+        <details>
+          <summary style="cursor:pointer;padding:8px;border-radius:8px">DEV Den_-</summary>
+          <div style="margin-top:12px">
+            <label for="adminPass">Password Admin</label>
+            <input id="adminPass" placeholder="masukkan password demo" />
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="loginAdmin">Masuk Admin</button>
+              <button id="exportCsv" class="ghost">Export CSV</button>
+            </div>
+
+            <div id="adminArea" style="margin-top:12px;display:none">
+              <h3 class="small">Daftar Laporan</h3>
+              <div class="reports-list" id="reportsList"></div>
+            </div>
+
+            <div class="muted small" style="margin-top:10px">Password demo: <strong>admin123</strong></div>
+          </div>
+        </details>
+      </div>
+
+    </section>
+  </div>
+
+  <script>
+    // Simple client-only prototype
+    const form = document.getElementById('reportForm');
+    const evidence = document.getElementById('evidence');
+    const imagePreview = document.getElementById('imagePreview');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const ADMIN_PASS = 'admin123'; // demo password
+
+    function getReports(){
+      try{ return JSON.parse(localStorage.getItem('reports_v1') || '[]'); }catch(e){ return []; }
+    }
+    function saveReports(list){ localStorage.setItem('reports_v1', JSON.stringify(list)); }
+
+    // show image/video preview
+    evidence.addEventListener('change', async (e)=>{
+      const f = e.target.files[0];
+      if(!f){ imagePreview.textContent = 'Tidak ada berkas bukti terunggah'; return }
+      const url = URL.createObjectURL(f);
+      if(f.type.startsWith('image/')){
+        imagePreview.innerHTML = `<img src="${url}" style="max-width:100%;border-radius:8px"/>`;
+      } else {
+        imagePreview.innerHTML = `<video controls style="max-width:100%;border-radius:8px"><source src="${url}" /></video>`;
+      }
+    });
+
+    // helper to read file as base64 (for localStorage demo only)
+    function fileToBase64(file){
+      return new Promise((res,rej)=>{
+        if(!file) return res(null);
+        const reader = new FileReader();
+        reader.onload = ()=>res(reader.result);
+        reader.onerror = ()=>rej('error');
+        reader.readAsDataURL(file);
+      })
+    }
+
+    form.addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      const anonymous = document.getElementById('anonymous').checked;
+      const platform = document.getElementById('platform').value;
+      const handle = document.getElementById('handle').value.trim();
+      const reason = document.getElementById('reason').value;
+      const details = document.getElementById('details').value.trim();
+      const reporterName = document.getElementById('reporterName').value.trim();
+      const reporterEmail = document.getElementById('reporterEmail').value.trim();
+      const file = evidence.files[0] || null;
+
+      if(!platform || !handle || !reason || !details){ alert('Lengkapi kolom yang diperlukan.'); return }
+
+      const b64 = await fileToBase64(file);
+
+      const rpt = {
+        id: 'rpt_' + Date.now(),
+        createdAt: new Date().toISOString(),
+        platform, handle, reason, details,
+        reporterName: anonymous ? null : (reporterName || null),
+        reporterEmail: anonymous ? null : (reporterEmail || null),
+        evidence: b64, // untuk demo hanya
+        status: 'new'
+      };
+
+      const list = getReports();
+      list.unshift(rpt);
+      saveReports(list);
+
+      alert('Laporan tersimpan (demo). Untuk produksi, kirim ke backend/API.');
+      form.reset();
+      imagePreview.textContent = 'Tidak ada berkas bukti terunggah';
+    });
+
+    clearBtn.addEventListener('click', ()=>{ if(confirm('Bersihkan isian?')) form.reset(); imagePreview.textContent = 'Tidak ada berkas bukti terunggah'; });
+
+    // Admin
+    const loginAdminBtn = document.getElementById('loginAdmin');
+    const adminPassInput = document.getElementById('adminPass');
+    const adminArea = document.getElementById('adminArea');
+    const reportsList = document.getElementById('reportsList');
+    const exportCsvBtn = document.getElementById('exportCsv');
+
+    function renderReports(){
+      const list = getReports();
+      if(list.length === 0){ reportsList.innerHTML = '<div class="muted">Belum ada laporan</div>'; return }
+      let html = '<table><thead><tr><th>Waktu</th><th>Platform</th><th>Handle</th><th>Alasan</th><th>Status</th><th></th></tr></thead><tbody>';
+      for(const r of list){
+        html += `<tr>
+          <td>${new Date(r.createdAt).toLocaleString()}</td>
+          <td>${r.platform}</td>
+          <td>${r.handle}</td>
+          <td class="small">${r.reason}<div class="muted small">${(r.details||'')}</div></td>
+          <td><span class="status ${r.status==='new'?'new':'reviewed'}">${r.status}</span></td>
+          <td><button class="view" data-id="${r.id}">Lihat</button> <button class="toggle" data-id="${r.id}">${r.status==='new'?'Tandai dibaca':'Tandai baru'}</button> <button class="delete" data-id="${r.id}">Hapus</button></td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      reportsList.innerHTML = html;
+
+      // attach events
+      reportsList.querySelectorAll('button.view').forEach(b=>b.addEventListener('click',e=>{
+        const id = e.target.dataset.id;
+        const r = getReports().find(x=>x.id===id);
+        const w = window.open('','_blank','width=700,height=700');
+        w.document.write('<h3>Detail Laporan</h3>');
+        w.document.write(`<p><strong>Platform:</strong> ${r.platform}</p>`);
+        w.document.write(`<p><strong>Handle:</strong> ${r.handle}</p>`);
+        w.document.write(`<p><strong>Alasan:</strong> ${r.reason}</p>`);
+        w.document.write(`<p><strong>Detail:</strong><br/>${r.details.replace(/\n/g,'<br/>')}</p>`);
+        if(r.reporterName || r.reporterEmail) w.document.write(`<p><strong>Pelapor:</strong> ${r.reporterName||''} ${r.reporterEmail? '('+r.reporterEmail+')':''}</p>`);
+        if(r.evidence) w.document.write(`<p><strong>Bukti:</strong><br/><img src="${r.evidence}" style="max-width:100%"/></p>`);
+      }));
+
+      reportsList.querySelectorAll('button.toggle').forEach(b=>b.addEventListener('click',e=>{
+        const id = e.target.dataset.id; const arr=getReports(); const idx=arr.findIndex(x=>x.id===id);
+        if(idx>=0){ arr[idx].status = arr[idx].status==='new'?'reviewed':'new'; saveReports(arr); renderReports(); }
+      }));
+
+      reportsList.querySelectorAll('button.delete').forEach(b=>b.addEventListener('click',e=>{
+        if(!confirm('Hapus laporan ini?')) return; const id=e.target.dataset.id; const arr=getReports().filter(x=>x.id!==id); saveReports(arr); renderReports();
+      }));
+    }
+
+    loginAdminBtn.addEventListener('click', ()=>{
+      const val = adminPassInput.value.trim();
+      if(val===ADMIN_PASS){ adminArea.style.display='block'; renderReports(); alert('Berhasil masuk (demo)'); }
+      else alert('Password salah');
+    });
+
+    exportCsvBtn.addEventListener('click', ()=>{
+      const arr = getReports();
+      if(arr.length===0) return alert('Belum ada data');
+      const keys = ['id','createdAt','platform','handle','reason','details','reporterName','reporterEmail','status'];
+      const csv = [keys.join(',')].concat(arr.map(r=>keys.map(k=>`"${String(r[k]||'').replace(/"/g,'""')}"`).join(','))).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'reports_export.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // initial
+    (function(){
+      // seed with example if empty
+      if(getReports().length===0){
+        saveReports([{id:'rpt_seed1',createdAt:new Date().toISOString(),platform:'Instagram',handle:'@contohpenipu',reason:'Penipuan / Scam',details:'Mengirim link phising via DM',reporterName:'Deni',reporterEmail:'deni@example.com',evidence:null,status:'new'}]);
+      }
+    })();
+  </script>
+
+</body>
+</html>
